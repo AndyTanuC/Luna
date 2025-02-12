@@ -1,13 +1,16 @@
-import { composeContext, elizaLogger } from "@elizaos/core";
-import { generateMessageResponse, generateTrueOrFalse } from "@elizaos/core";
-import { booleanFooter, messageCompletionFooter } from "@elizaos/core";
 import {
     Action,
     ActionExample,
+    booleanFooter,
+    composeContext,
     Content,
+    elizaLogger,
+    generateMessageResponse,
+    generateTrueOrFalse,
     HandlerCallback,
     IAgentRuntime,
     Memory,
+    messageCompletionFooter,
     ModelClass,
     State,
 } from "@elizaos/core";
@@ -29,9 +32,6 @@ About {{agentName}}:
 {{providers}}
 
 {{attachments}}
-
-# Capabilities
-Note that {{agentName}} is capable of reading/seeing/hearing various forms of media, including images, videos, audio, plaintext and PDFs. Recent attachments have been included above under the "Attachments" section.
 
 {{messageDirections}}
 

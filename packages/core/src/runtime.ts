@@ -718,6 +718,67 @@ export class AgentRuntime implements IAgentRuntime {
         this.providers.push(provider);
     }
 
+    async processAction(
+        actionName: string,
+        message: Memory,
+        state: State,
+        options: { [key: string]: unknown },
+        callback?: HandlerCallback
+    ): Promise<void> {
+        const normalizedAction = actionName.toLowerCase().replace("_", "");
+
+        elizaLogger.success(`Normalized action: ${normalizedAction}`);
+
+        let action = this.actions.find(
+            (a: { name: string }) =>
+                a.name
+                    .toLowerCase()
+                    .replace("_", "")
+                    .includes(normalizedAction) ||
+                normalizedAction.includes(a.name.toLowerCase().replace("_", ""))
+        );
+
+        if (!action) {
+            elizaLogger.info("Attempting to find action in similes.");
+            for (const _action of this.actions) {
+                const simileAction = _action.similes.find(
+                    (simile) =>
+                        simile
+                            .toLowerCase()
+                            .replace("_", "")
+                            .includes(normalizedAction) ||
+                        normalizedAction.includes(
+                            simile.toLowerCase().replace("_", "")
+                        )
+                );
+                if (simileAction) {
+                    action = _action;
+                    elizaLogger.success(
+                        `Action found in similes: ${action.name}`
+                    );
+                    break;
+                }
+            }
+        }
+
+        if (!action) {
+            elizaLogger.error("No action found for", actionName);
+            return;
+        }
+
+        if (!action.handler) {
+            elizaLogger.error(`Action ${action.name} has no handler.`);
+            return;
+        }
+
+        try {
+            elizaLogger.info(`Executing handler for action: ${action.name}`);
+            await action.handler(this, message, state, options, callback);
+        } catch (error) {
+            elizaLogger.error(error);
+        }
+    }
+
     /**
      * Process the actions of a message.
      * @param message The message to process.
@@ -730,71 +791,36 @@ export class AgentRuntime implements IAgentRuntime {
         callback?: HandlerCallback
     ): Promise<void> {
         for (const response of responses) {
-            if (!response.content?.action) {
+            elizaLogger.log(
+                `Processing actions for ${this.character.name} with response:`,
+                response.content
+            );
+            if (!response.content?.action && !response.content?.actions) {
                 elizaLogger.warn("No action found in the response content.");
                 continue;
             }
 
-            const normalizedAction = response.content.action
-                .toLowerCase()
-                .replace("_", "");
-
-            elizaLogger.success(`Normalized action: ${normalizedAction}`);
-
-            let action = this.actions.find(
-                (a: { name: string }) =>
-                    a.name
-                        .toLowerCase()
-                        .replace("_", "")
-                        .includes(normalizedAction) ||
-                    normalizedAction.includes(
-                        a.name.toLowerCase().replace("_", "")
-                    )
-            );
-
-            if (!action) {
-                elizaLogger.info("Attempting to find action in similes.");
-                for (const _action of this.actions) {
-                    const simileAction = _action.similes.find(
-                        (simile) =>
-                            simile
-                                .toLowerCase()
-                                .replace("_", "")
-                                .includes(normalizedAction) ||
-                            normalizedAction.includes(
-                                simile.toLowerCase().replace("_", "")
-                            )
+            if (Array.isArray(response.content.actions)) {
+                const actions = response.content.actions.sort((a, b) =>
+                    a.toLowerCase().localeCompare(b.toLowerCase())
+                );
+                for (const action of actions) {
+                    await this.processAction(
+                        action,
+                        message,
+                        state,
+                        {},
+                        callback
                     );
-                    if (simileAction) {
-                        action = _action;
-                        elizaLogger.success(
-                            `Action found in similes: ${action.name}`
-                        );
-                        break;
-                    }
                 }
-            }
-
-            if (!action) {
-                elizaLogger.error(
-                    "No action found for",
-                    response.content.action
+            } else {
+                await this.processAction(
+                    response.content.action,
+                    message,
+                    state,
+                    {},
+                    callback
                 );
-                continue;
-            }
-
-            if (!action.handler) {
-                elizaLogger.error(`Action ${action.name} has no handler.`);
-                continue;
-            }
-
-            try {
-                elizaLogger.info(
-                    `Executing handler for action: ${action.name}`
-                );
-                await action.handler(this, message, state, {}, callback);
-            } catch (error) {
-                elizaLogger.error(error);
             }
         }
     }

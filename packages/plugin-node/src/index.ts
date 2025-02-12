@@ -2,7 +2,6 @@ export * from "./services/index.ts";
 
 import { Plugin } from "@elizaos/core";
 
-import { describeImage } from "./actions/describe-image.ts";
 import {
     AwsS3Service,
     BrowserService,
@@ -30,6 +29,6 @@ export function createNodePlugin() {
             new VideoService(),
             new AwsS3Service(),
         ],
-        actions: [describeImage],
+        actions: [],
     } as const satisfies Plugin;
 }

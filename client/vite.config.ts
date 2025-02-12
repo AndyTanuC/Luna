@@ -1,7 +1,6 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from "vite";
 import viteCompression from "vite-plugin-compression";
-
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [
@@ -19,6 +18,10 @@ export default defineConfig({
         cssMinify: true,
         sourcemap: false,
         cssCodeSplit: true,
+    },
+    server: {
+        host: "0.0.0.0",
+        port: 5173,
     },
     resolve: {
         alias: {

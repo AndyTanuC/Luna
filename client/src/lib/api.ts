@@ -1,6 +1,8 @@
-import { type UUID, type Character } from "@elizaos/core";
+import { type Character, type UUID } from "@elizaos/core";
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3111";
+const BASE_URL =
+    "https://0025-2404-8000-1004-5dfe-201f-6fe7-7400-676f.ngrok-free.app";
 
 const fetcher = async ({
     url,
@@ -62,12 +64,15 @@ export const apiClient = {
     sendMessage: (
         agentId: string,
         message: string,
-        selectedFile?: File | null
+        selectedFile?: File | null,
+        walletAddress?: string
     ) => {
         const formData = new FormData();
         formData.append("text", message);
         formData.append("user", "user");
-
+        if (walletAddress) {
+            formData.append("walletAddress", walletAddress);
+        }
         if (selectedFile) {
             formData.append("file", selectedFile);
         }
@@ -75,6 +80,17 @@ export const apiClient = {
             url: `/${agentId}/message`,
             method: "POST",
             body: formData,
+        });
+    },
+    sendTransaction: (
+        agentId: string,
+        callIds: string[],
+        walletAddress?: string
+    ) => {
+        return fetcher({
+            url: `/${agentId}/transaction`,
+            method: "POST",
+            body: { callIds, walletAddress },
         });
     },
     getAgents: () => fetcher({ url: "/agents" }),

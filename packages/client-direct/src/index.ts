@@ -1,32 +1,32 @@
+import {
+    AgentRuntime,
+    Client,
+    composeContext,
+    Content,
+    elizaLogger,
+    generateCaption,
+    generateImage,
+    generateMessageResponse,
+    generateObject,
+    getEmbeddingZeroVector,
+    IAgentRuntime,
+    Media,
+    Memory,
+    messageCompletionFooter,
+    ModelClass,
+    settings,
+    stringToUuid,
+} from "@elizaos/core";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Request as ExpressRequest } from "express";
-import multer from "multer";
-import { z } from "zod";
-import {
-    AgentRuntime,
-    elizaLogger,
-    messageCompletionFooter,
-    generateCaption,
-    generateImage,
-    Media,
-    getEmbeddingZeroVector,
-    composeContext,
-    generateMessageResponse,
-    generateObject,
-    Content,
-    Memory,
-    ModelClass,
-    Client,
-    stringToUuid,
-    settings,
-    IAgentRuntime,
-} from "@elizaos/core";
-import { createApiRouter } from "./api.ts";
 import * as fs from "fs";
-import * as path from "path";
-import { createVerifiableLogApiRouter } from "./verifiable-log-api.ts";
+import multer from "multer";
 import OpenAI from "openai";
+import * as path from "path";
+import { z } from "zod";
+import { createApiRouter } from "./api.ts";
+import { createVerifiableLogApiRouter } from "./verifiable-log-api.ts";
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -47,11 +47,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage /*: multer.memoryStorage() */ });
 
 export const messageHandlerTemplate =
-    // {{goals}}
-    // "# Action Examples" is already included
-    `{{actionExamples}}
-(Action examples are for reference only. Do not use the information from them in your response.)
-
+    `
 # Knowledge
 {{knowledge}}
 
@@ -62,18 +58,38 @@ About {{agentName}}:
 
 {{providers}}
 
-{{attachments}}
-
-# Capabilities
-Note that {{agentName}} is capable of reading/seeing/hearing various forms of media, including images, videos, audio, plaintext and PDFs. Recent attachments have been included above under the "Attachments" section.
-
 {{messageDirections}}
 
+# Recent Context
 {{recentMessages}}
 
+# Available Actions
 {{actions}}
 
+# Action Selection Guidelines
+1. Analyze the user's message to identify the primary intent
+2. Match the intent to the most appropriate action
+3. Do not trigger auxiliary actions (like GET_BALANCE) unless explicitly requested
+4. If multiple actions are mentioned, prioritize the main requested action
+5. Only include actions that directly address the user's request
+
 # Instructions: Write the next message for {{agentName}}.
+- Respond only to game-related questions or questions about {{agentName}}
+- Use IGNORE action for unrelated queries
+- Each distinct request should have its corresponding action
+- Do not add supplementary actions unless specifically requested
+
+
+Output Format:
+\`\`\`json
+{
+    "user": "{{agentName}}",
+    "text": "response text",
+    "actions": ["PRIMARY_ACTION"]
+}
+\`\`\`
+
+else
 ` + messageCompletionFooter;
 
 export const hyperfiHandlerTemplate = `{{actionExamples}}
@@ -136,7 +152,6 @@ export class DirectClient {
         const apiRouter = createApiRouter(this.agents, this);
         this.app.use(apiRouter);
 
-
         const apiLogRouter = createVerifiableLogApiRouter(this.agents);
         this.app.use(apiLogRouter);
 
@@ -189,6 +204,110 @@ export class DirectClient {
         );
 
         this.app.post(
+            "/:agentId/transaction",
+            async (req: express.Request, res: express.Response) => {
+                const agentId = req.params.agentId;
+                const roomId = stringToUuid(
+                    req.body.roomId ?? "default-room-" + agentId
+                );
+                const userId = req.body.walletAddress;
+
+                let runtime = this.agents.get(agentId);
+
+                // if runtime is null, look for runtime with the same name
+                if (!runtime) {
+                    runtime = Array.from(this.agents.values()).find(
+                        (a) =>
+                            a.character.name.toLowerCase() ===
+                            agentId.toLowerCase()
+                    );
+                }
+
+                if (!runtime) {
+                    res.status(404).send("Agent not found");
+                    return;
+                }
+
+                await runtime.ensureConnection(
+                    userId,
+                    roomId,
+                    req.body.userName,
+                    req.body.name,
+                    "direct"
+                );
+
+                const callIds = req.body.callIds;
+                // if empty text, directly return
+                if (!callIds) {
+                    res.json([]);
+                    return;
+                }
+
+                const response: Content = {
+                    text: "",
+                    attachments: [],
+                    source: "direct",
+                    inReplyTo: undefined,
+                };
+
+                if (callIds.includes("purchase_outpost")) {
+                    response.text = "Purchase outpost successfully done";
+                    response.action = "get_outpost";
+                }
+
+                if (callIds.includes("purchase_reinforcement")) {
+                    response.text = "Purchase reinforcement successfully done";
+                    response.action = "get_outpost";
+                }
+
+                if (callIds.includes("reinforce_outpost")) {
+                    response.text = "Reinforce outpost successfully done";
+                    response.action = "get_outpost";
+                }
+
+                const messageId = stringToUuid(Date.now().toString());
+
+                const memory: Memory = {
+                    id: stringToUuid(messageId + "-" + userId),
+                    agentId: runtime.agentId,
+                    userId,
+                    roomId,
+                    content: response,
+                    createdAt: Date.now(),
+                };
+
+                await runtime.messageManager.addEmbeddingToMemory(memory);
+                await runtime.messageManager.createMemory(memory);
+
+                let state = await runtime.composeState(memory, {
+                    agentName: runtime.character.name,
+                });
+
+                state = await runtime.updateRecentMessageState(state);
+
+                const message = { text: "" } as Content | null;
+
+                await runtime.processActions(
+                    memory,
+                    [memory],
+                    state,
+                    async (newMessages) => {
+                        message.text = newMessages.text;
+                        return [memory];
+                    }
+                );
+
+                await runtime.evaluate(memory, state);
+
+                if (message) {
+                    res.json([message]);
+                } else {
+                    res.json([]);
+                }
+            }
+        );
+
+        this.app.post(
             "/:agentId/message",
             upload.single("file"),
             async (req: express.Request, res: express.Response) => {
@@ -196,7 +315,7 @@ export class DirectClient {
                 const roomId = stringToUuid(
                     req.body.roomId ?? "default-room-" + agentId
                 );
-                const userId = stringToUuid(req.body.userId ?? "user");
+                const userId = req.body.walletAddress;
 
                 let runtime = this.agents.get(agentId);
 
@@ -286,6 +405,8 @@ export class DirectClient {
                     template: messageHandlerTemplate,
                 });
 
+                elizaLogger.info("Context", context);
+
                 const response = await generateMessageResponse({
                     runtime: runtime,
                     context,
@@ -313,14 +434,25 @@ export class DirectClient {
 
                 state = await runtime.updateRecentMessageState(state);
 
-                let message = null as Content | null;
+                const message = { text: "" } as Content | null;
 
                 await runtime.processActions(
                     memory,
                     [responseMessage],
                     state,
                     async (newMessages) => {
-                        message = newMessages;
+                        elizaLogger.info("newMessages", newMessages);
+
+                        if (newMessages.contractCalls) {
+                            message.contractCalls = newMessages.contractCalls;
+                        }
+
+                        message.text =
+                            message.text === ""
+                                ? newMessages.text
+                                : [message.text, newMessages.text].join(
+                                      "\n \n"
+                                  );
                         return [memory];
                     }
                 );
@@ -329,13 +461,18 @@ export class DirectClient {
 
                 // Check if we should suppress the initial message
                 const action = runtime.actions.find(
-                    (a) => a.name === response.action
+                    (a) =>
+                        a.name === response.action ||
+                        response.actions?.includes(a.name)
                 );
+
                 const shouldSuppressInitialMessage =
                     action?.suppressInitialMessage;
 
+                elizaLogger.info("response", JSON.stringify(response));
+
                 if (!shouldSuppressInitialMessage) {
-                    if (message) {
+                    if (message && message.text !== "") {
                         res.json([response, message]);
                     } else {
                         res.json([response]);
@@ -555,38 +692,42 @@ export class DirectClient {
                         content: contentObj,
                     };
 
-                    runtime.messageManager.createMemory(responseMessage).then(() => {
-                          const messageId = stringToUuid(Date.now().toString());
-                          const memory: Memory = {
-                              id: messageId,
-                              agentId: runtime.agentId,
-                              userId,
-                              roomId,
-                              content,
-                              createdAt: Date.now(),
-                          };
+                    runtime.messageManager
+                        .createMemory(responseMessage)
+                        .then(() => {
+                            const messageId = stringToUuid(
+                                Date.now().toString()
+                            );
+                            const memory: Memory = {
+                                id: messageId,
+                                agentId: runtime.agentId,
+                                userId,
+                                roomId,
+                                content,
+                                createdAt: Date.now(),
+                            };
 
-                          // run evaluators (generally can be done in parallel with processActions)
-                          // can an evaluator modify memory? it could but currently doesn't
-                          runtime.evaluate(memory, state).then(() => {
-                            // only need to call if responseMessage.content.action is set
-                            if (contentObj.action) {
-                                // pass memory (query) to any actions to call
-                                runtime.processActions(
-                                    memory,
-                                    [responseMessage],
-                                    state,
-                                    async (_newMessages) => {
-                                        // FIXME: this is supposed override what the LLM said/decided
-                                        // but the promise doesn't make this possible
-                                        //message = newMessages;
-                                        return [memory];
-                                    }
-                                ); // 0.674s
-                            }
-                            resolve(true);
+                            // run evaluators (generally can be done in parallel with processActions)
+                            // can an evaluator modify memory? it could but currently doesn't
+                            runtime.evaluate(memory, state).then(() => {
+                                // only need to call if responseMessage.content.action is set
+                                if (contentObj.action) {
+                                    // pass memory (query) to any actions to call
+                                    runtime.processActions(
+                                        memory,
+                                        [responseMessage],
+                                        state,
+                                        async (_newMessages) => {
+                                            // FIXME: this is supposed override what the LLM said/decided
+                                            // but the promise doesn't make this possible
+                                            //message = newMessages;
+                                            return [memory];
+                                        }
+                                    ); // 0.674s
+                                }
+                                resolve(true);
+                            });
                         });
-                    });
                 });
                 res.json({ response: hfOut });
             }
