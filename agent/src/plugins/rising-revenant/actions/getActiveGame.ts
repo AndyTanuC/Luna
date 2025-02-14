@@ -140,7 +140,8 @@ export default {
                     const hours = Math.floor(timeToNextPhaseInMinutes / 60);
                     const minutes = Math.round(timeToNextPhaseInMinutes % 60);
 
-                    text += ` Next phase will start in ${hours} hours and ${minutes} minutes.`;
+                    text += `\n The game phase will start in ${hours} hours and ${minutes} minutes. \n If you haven't participated in the game yet, you can do so by purchasing an outpost.
+                    `;
                 }
             }
 

@@ -206,13 +206,8 @@ export default {
                 id: "purchase_reinforcement",
             };
 
-            if (contractCalls.length > 0) {
-                contractCalls[0].nextCalls.push(purchaseReinforcementCall);
-                text += `. After that please sign the second transaction to purchase ${count} reinforcement${count > 1 ? "s" : ""} for the current game`;
-            } else {
-                contractCalls.push(purchaseReinforcementCall);
-                text = `Please sign the transaction to purchase ${count} reinforcement${count > 1 ? "s" : ""} for the current game`;
-            }
+            contractCalls.push(purchaseReinforcementCall);
+            text = `Please sign the transaction to purchase ${count} reinforcement${count > 1 ? "s" : ""} for the current game`;
 
             if (callback) {
                 const callbackPayload = { text, contractCalls };

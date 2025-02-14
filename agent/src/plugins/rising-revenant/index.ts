@@ -2,6 +2,7 @@ import { Plugin } from "@elizaos/core";
 import getActiveGame from "./actions/getActiveGame";
 import getBalance from "./actions/getBalance";
 import getOutpost from "./actions/getOutpost";
+import getOutpostAfterTrx from "./actions/getOutpostAfterTrx";
 // import increaseAllowance from "./actions/increaseAllowance";
 import purchaseOutpost from "./actions/purchaseOutpost";
 import purchaseReinforcement from "./actions/purchaseReinforcement";
@@ -16,6 +17,7 @@ export const risingRevenantPlugin: Plugin = {
         getActiveGame,
         getBalance,
         getOutpost,
+        getOutpostAfterTrx,
         // increaseAllowance,
         purchaseOutpost,
         purchaseReinforcement,

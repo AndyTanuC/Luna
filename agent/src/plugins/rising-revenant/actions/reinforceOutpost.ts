@@ -37,17 +37,29 @@ const createOutpostIdMessageTemplate = (message: string) => `
 ${message}
 
 # Task
-Extract the outpost IDs and the count of reinforcements from the message. The user wants to reinforce outpost(s).
-If the user wants to reinforce all outposts, set reinforceAll to true.
-If the user mentions specific outposts, include all IDs in the outpostIds array.
-User will likely not mention the ID but instead the location or the outpost sequence which we assign on each outpost and can be found in the recent messages.
+Extract the outpost ID and the count of reinforcements from the message. The user wants to reinforce outpost(s).
+
+Set reinforceAll to true when:
+- User mentions "all outposts"
+- User mentions "both outposts"
+- User mentions "all of my outposts"
+- User mentions "every outpost"
+- User mentions "every outpost they own"
+- User mentions "every outpost they have"
+- User mentions "every outpost they have access to"
+- User mentions "every outpost they have control over"
+- User mentions "every outpost they have access to"
+- User wants to reinforce every outpost they own
+
+Only set specific outpostIds when the user explicitly references specific outpost numbers (e.g., "#1", "#2").
 
 Format the response as a JSON string wrapped in {"text": "YOUR_JSON_HERE"}
 Example responses:
-{"text": "{\\"outpostIds\\": [\\"123\\"], \\"count\\": \\"10\\", \\"reinforceAll\\": false}"}
-{"text": "{\\"outpostIds\\": [\\"123\\", \\"456\\"], \\"count\\": \\"10\\", \\"reinforceAll\\": false}"}
-{"text": "{\\"outpostIds\\": [], \\"count\\": \\"10\\", \\"reinforceAll\\": true}"}
+{"text": "{\\"outpostIds\\": [\\"0x6220917093cf6c9716c215f52bbb3754eb07094249595b42033464033591b30\\"], \\"count\\": \\"10\\", \\"reinforceAll\\": false}"}
+{"text": "{\\"outpostIds\\": [], \\"count\\": \\"5\\", \\"reinforceAll\\": true}"}
 
+
+IMPORTANT: Double check that you're using the correct outpost information that matches the user's requested number.
 Generate only the JSON response, no other commentary.`;
 
 const extractReinforcementRequest = async (
@@ -142,6 +154,7 @@ export default {
             state,
             message.content?.text || ""
         );
+        elizaLogger.log("Reinforcement request:", request);
 
         if (!request) {
             if (callback) {
@@ -192,6 +205,7 @@ export default {
                     request.count,
                 ],
                 entrypoint: "reinforce",
+                id: "reinforce_outpost",
                 nextCall: {},
             }));
 
@@ -240,6 +254,7 @@ export default {
                 contractAddress: OUTPOST_ADDRESS,
                 calldata: [gameId, location.x, location.y, request.count],
                 entrypoint: "reinforce",
+                id: `reinforce_outpost`,
                 nextCall: {},
             }));
 

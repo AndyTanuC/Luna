@@ -28,6 +28,14 @@ import { z } from "zod";
 import { createApiRouter } from "./api.ts";
 import { createVerifiableLogApiRouter } from "./verifiable-log-api.ts";
 
+type ContractCall = {
+    id: string;
+    contractAddress: string;
+    calldata: string[];
+    entrypoint: string;
+    nextCalls?: ContractCall[];
+};
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = path.join(process.cwd(), "data", "uploads");
@@ -252,17 +260,16 @@ export class DirectClient {
 
                 if (callIds.includes("purchase_outpost")) {
                     response.text = "Purchase outpost successfully done";
-                    response.action = "get_outpost";
-                }
-
-                if (callIds.includes("purchase_reinforcement")) {
+                    response.action = "trx_purchase_outpost";
+                } else if (callIds.includes("purchase_reinforcement")) {
                     response.text = "Purchase reinforcement successfully done";
-                    response.action = "get_outpost";
-                }
-
-                if (callIds.includes("reinforce_outpost")) {
+                    response.action = "trx_purchase_outpost";
+                } else if (callIds.includes("reinforce_outpost")) {
                     response.text = "Reinforce outpost successfully done";
-                    response.action = "get_outpost";
+                    response.action = "trx_purchase_outpost";
+                } else {
+                    // Add default text if no matching callId
+                    response.text = "Transaction processed";
                 }
 
                 const messageId = stringToUuid(Date.now().toString());
@@ -276,7 +283,10 @@ export class DirectClient {
                     createdAt: Date.now(),
                 };
 
-                await runtime.messageManager.addEmbeddingToMemory(memory);
+                // Only add embedding if there's content text
+                if (response.text) {
+                    await runtime.messageManager.addEmbeddingToMemory(memory);
+                }
                 await runtime.messageManager.createMemory(memory);
 
                 let state = await runtime.composeState(memory, {
@@ -285,7 +295,7 @@ export class DirectClient {
 
                 state = await runtime.updateRecentMessageState(state);
 
-                const message = { text: "" } as Content | null;
+                const message = { text: response.text } as Content | null;
 
                 await runtime.processActions(
                     memory,
@@ -444,7 +454,15 @@ export class DirectClient {
                         elizaLogger.info("newMessages", newMessages);
 
                         if (newMessages.contractCalls) {
-                            message.contractCalls = newMessages.contractCalls;
+                            if (message.contractCalls) {
+                                message.contractCalls = [
+                                    ...(message.contractCalls as ContractCall[]),
+                                    ...(newMessages.contractCalls as ContractCall[]),
+                                ];
+                            } else {
+                                message.contractCalls =
+                                    newMessages.contractCalls;
+                            }
                         }
 
                         message.text =

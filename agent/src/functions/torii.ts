@@ -89,6 +89,7 @@ export const getPlayerInfo = async (walletAddress: string, gameId: string) => {
             }
         `,
         variables: { walletAddress, gameId },
+        fetchPolicy: "network-only",
     });
 
     return data.playerInfoModels.edges.length
@@ -105,6 +106,7 @@ export const getPlayerOutposts = async (
             query GetPlayerOutposts($walletAddress: String!, $gameId: String!) {
                 outpostModels(
                     where: { owner: $walletAddress, game_id: $gameId }
+                    last: 100
                 ) {
                     edges {
                         node {
@@ -128,6 +130,7 @@ export const getPlayerOutposts = async (
             }
         `,
         variables: { walletAddress, gameId },
+        fetchPolicy: "network-only",
     });
 
     return data.outpostModels.edges || [];

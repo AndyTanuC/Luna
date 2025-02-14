@@ -40,16 +40,6 @@ type ContentWithUser = Content & ExtraContentFields;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function formatString(input: string) {
-    return input
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (char: string) => char.toUpperCase());
-}
-
-const renderCallId = (call: ContractCall) => {
-    return `${formatString(call.id)} successfully done`;
-};
-
 export default function Page({ agentId }: { agentId: UUID }) {
     const { toast } = useToast();
     const { address } = useAccount();
@@ -144,58 +134,33 @@ export default function Page({ agentId }: { agentId: UUID }) {
         formRef.current?.reset();
     };
 
-    const executeCall = async (call: ContractCall | ContractCall[]) => {
+    const executeCall = async (calls: ContractCall[]) => {
         try {
-            if (Array.isArray(call)) {
+            if (calls.length) {
                 // Execute all calls together as a multi-call
-                const tx = await sendAsync(
-                    call.map((c) => ({
-                        contractAddress: c.contractAddress,
-                        calldata: c.calldata,
-                        entrypoint: c.entrypoint,
-                    }))
-                );
+                const groupedCalls = calls.map((c) => ({
+                    contractAddress: c.contractAddress,
+                    calldata: c.calldata,
+                    entrypoint: c.entrypoint,
+                }));
+
+                // Send all calls in a single transaction
+                const tx = await sendAsync(groupedCalls);
 
                 if (tx.transaction_hash) {
                     toast({
                         title: "Transaction sent!",
-                        description: !Array.isArray(call)
-                            ? `${renderCallId(call)}`
-                            : `All transactions sent successfully`,
+                        description: "All transactions sent successfully",
                     });
 
-                    sendTransactionMutation.mutate(call.map((c) => c.id));
-                }
+                    await sleep(3000);
 
-                // After multi-call succeeds, process any chained calls
-                for (const singleCall of call) {
-                    if (singleCall.nextCalls?.length) {
-                        await sleep(10000); // Wait before processing chained calls
-                        await executeCall(singleCall.nextCalls);
-                    }
-                }
-            } else {
-                const { nextCalls = [], id, ...rest } = call;
-
-                // Execute single call
-                const tx = await sendAsync([rest]);
-
-                if (tx.transaction_hash) {
-                    toast({
-                        title: "Transaction sent!",
-                        description: `${renderCallId(call)}`,
-                    });
-
-                    sendTransactionMutation.mutate([id]);
-                }
-                // Process chained calls if any
-                if (nextCalls.length > 0) {
-                    await sleep(10000);
-                    await executeCall(nextCalls);
+                    // Process all call IDs together
+                    sendTransactionMutation.mutate(calls.map((c) => c.id));
                 }
             }
         } catch (error) {
-            console.error("Failed to execute contract call:", call, error);
+            console.error("Failed to execute contract call:", calls, error);
             toast({
                 variant: "destructive",
                 title: "Contract call failed",
@@ -208,9 +173,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
     const handleContractCall = async (contractCalls: ContractCall[]) => {
         console.log("Handle Contract Calls", contractCalls);
 
-        for (const call of contractCalls) {
-            await executeCall(call);
-        }
+        await executeCall(contractCalls);
     };
 
     useEffect(() => {

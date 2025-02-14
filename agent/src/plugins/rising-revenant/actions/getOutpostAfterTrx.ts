@@ -57,7 +57,7 @@ If ${outpostInformations.length} is 0:
 
 If ${outpostInformations.length} > 0
 1. Return exactly this: "
-You have ${outpostInformations.length} outposts: \n
+The transaction was successful, now you have ${outpostInformations.length} outposts: \n
 ${
     outpostInformations
         .map(
@@ -119,9 +119,9 @@ const composeOutpostMessage = async (
 };
 
 export default {
-    name: "GET_OUTPOST",
-    description: "Get the outpost of the user",
-    similes: ["OUTPOST"],
+    name: "TRX_PURCHASE_OUTPOST",
+    description: "Get the outpost of the user after a transaction",
+    similes: [],
     suppressInitialMessage: true,
     validate: async (runtime: IAgentRuntime, _message: Memory) => {
         return true;
@@ -133,7 +133,7 @@ export default {
         options: { [key: string]: unknown },
         callback?: HandlerCallback
     ): Promise<boolean> => {
-        elizaLogger.log("Starting GET_OUTPOST handler...");
+        elizaLogger.log("Starting TRX_PURCHASE_OUTPOST handler...");
         const walletAddress = message.userId;
 
         // Initialize or update state
@@ -213,50 +213,18 @@ export default {
 
             return true;
         } catch (error) {
-            elizaLogger.error("Error getting outpost:", error);
+            elizaLogger.error(
+                "Error getting outpost after transaction:",
+                error
+            );
             if (callback) {
                 callback({
-                    text: `Error getting outpost: ${error.message}`,
+                    text: `Error getting outpost after transaction: ${error.message}`,
                     content: { error: error.message },
                 });
             }
             return false;
         }
     },
-    examples: [
-        [
-            {
-                user: "{{user1}}",
-                content: {
-                    text: "How many outposts do I have?",
-                },
-            },
-            {
-                user: "{{agentName}}",
-                content: {
-                    text: `
-                        You have 2 outposts, they are located at:
-                        - [x, y] with {life} life remaining and {reinforcementSlotsRemaining} reinforcement slots remaining ({currentReinforcement})
-                        - [x, y] with {life} life remaining and {reinforcementSlotsRemaining} reinforcement slots remaining ({currentReinforcement})
-                    `,
-                    action: "GET_OUTPOST",
-                },
-            },
-        ],
-        [
-            {
-                user: "{{user1}}",
-                content: {
-                    text: "Do I have any outposts left?",
-                },
-            },
-            {
-                user: "{{agentName}}",
-                content: {
-                    text: "You don't have any outposts at the moment, you can build one by summoning a revenant.",
-                    action: "GET_OUTPOST",
-                },
-            },
-        ],
-    ] as ActionExample[][],
+    examples: [] as ActionExample[][],
 } as Action;

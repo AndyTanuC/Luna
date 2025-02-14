@@ -31,25 +31,25 @@ ${message}
 
 # Task
 Extract the number of outposts the user wants to purchase from the message.
-You must respond with a single number.
+You must respond with a single number as a string.
 
 # Examples
 Message: "I want to buy 2 outposts"
-Response: 2
+Response: "2"
 
 Message: "Help me purchase 5 outposts"
-Response: 5
+Response: "5"
 
 Message: "I want to buy an outpost"
-Response: 1
+Response: "1"
 
 # Important Rules
-1. Respond only with a single number
-2. If no specific number is mentioned, use 1
-3. Do not include any text, punctuation, or explanation
-4. Do not include quotes around the number
+1. Respond only with a single number as a string
+2. If no specific number is mentioned, use "1"
+3. Include the quotes around the number
+4. Do not include any additional text, punctuation, or explanation
 
-Respond only with the number:`;
+Respond with the number as a string:`;
 
 const extractPurchaseRequest = async (
     runtime: IAgentRuntime,
@@ -76,13 +76,13 @@ const extractPurchaseRequest = async (
         return null;
     }
 
-    const count = Number(response.object.text.trim());
-    if (isNaN(count) || count < 1) {
+    const count = response.object.text.toString().trim();
+    if (isNaN(Number(count)) || Number(count) < 1) {
         elizaLogger.error("Invalid count value:", count);
         return null;
     }
 
-    return { count: count.toString() };
+    return { count };
 };
 
 export default {
@@ -175,10 +175,10 @@ export default {
             return false;
         }
 
-        const count = Number(request.count);
+        const count = request.count;
 
         const outpostPrice = Number(process.env.STARKNET_OUTPOST_PRICE);
-        const totalPrice = outpostPrice * count;
+        const totalPrice = outpostPrice * Number(count);
         const lordsBalance = Number(await getLordsBalance(walletAddress));
         const allowance = Number(await getOutpostAllowance(walletAddress));
 
@@ -186,7 +186,7 @@ export default {
             elizaLogger.error("Insufficient balance");
             if (callback) {
                 callback({
-                    text: `Insufficient $LORDS balance to purchase ${count} outpost${count > 1 ? "s" : ""}`,
+                    text: `Insufficient $LORDS balance to purchase ${count} outpost${Number(count) > 1 ? "s" : ""}`,
                     content: { error: "Insufficient balance" },
                 });
             }
@@ -203,28 +203,20 @@ export default {
         }
 
         try {
-            // Add purchase calls
-            for (let i = 0; i < count; i++) {
-                if (contractCalls.length > 0) {
-                    contractCalls.push({
-                        contractAddress: OUTPOST_ADDRESS,
-                        calldata: [gameId],
-                        entrypoint: "purchase",
-                        id: "purchase_outpost",
-                    });
-                } else {
-                    contractCalls.push({
-                        contractAddress: OUTPOST_ADDRESS,
-                        calldata: [gameId],
-                        entrypoint: "purchase",
-                        id: "purchase_outpost",
-                    });
-                }
-            }
+            // Add all purchase calls in a single array
+            const purchaseCalls = Array(Number(count)).fill({
+                contractAddress: OUTPOST_ADDRESS,
+                calldata: [gameId],
+                entrypoint: "purchase",
+                id: "purchase_outpost",
+            });
+
+            // Combine all calls
+            contractCalls.push(...purchaseCalls);
 
             if (callback) {
                 const callbackPayload = {
-                    text: `Please sign the transaction${count > 1 ? "s" : ""} to purchase ${count} outpost${count > 1 ? "s" : ""} for the current game`,
+                    text: `Please sign the transaction${Number(count) > 1 ? "s" : ""} to purchase ${count} outpost${Number(count) > 1 ? "s" : ""} for the current game`,
                     contractCalls,
                 };
 
