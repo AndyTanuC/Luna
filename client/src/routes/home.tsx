@@ -26,18 +26,21 @@ function WalletManager() {
     const [showGreeting1, setShowGreeting1] = useState(false);
     const [showGreeting2, setShowGreeting2] = useState(false);
     const [showButtons, setShowButtons] = useState(false);
+    const [showContent, setShowContent] = useState(false);
 
     useEffect(() => {
         const timer0 = setTimeout(() => setShowOpenEyes(true), 300);
         const timer1 = setTimeout(() => setShowGreeting1(true), 800);
         const timer2 = setTimeout(() => setShowGreeting2(true), 1800);
         const timer3 = setTimeout(() => setShowButtons(true), 2800);
+        const timer4 = setTimeout(() => setShowContent(true), 500);
 
         return () => {
             clearTimeout(timer0);
             clearTimeout(timer1);
             clearTimeout(timer2);
             clearTimeout(timer3);
+            clearTimeout(timer4);
         };
     }, []);
 
@@ -49,28 +52,32 @@ function WalletManager() {
         return (
             <div className="flex flex-col items-center gap-4 w-full max-w-[240px] text-center">
                 <img src="/luna_open.png" alt="Luna" className="w-64 h-64" />
-                <p className="text-sm">No wallet extensions detected</p>
-                <div className="flex flex-col gap-2">
-                    <p className="text-xs">
-                        Please install one of these wallets:
-                    </p>
-                    <a
-                        href="https://www.argent.xyz/argent-x/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline text-sm"
-                    >
-                        Install Argent X
-                    </a>
-                    <a
-                        href="https://braavos.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline text-sm"
-                    >
-                        Install Braavos
-                    </a>
-                </div>
+                {showContent && (
+                    <>
+                        <p className="text-sm">No wallet extensions detected</p>
+                        <div className="flex flex-col gap-2">
+                            <p className="text-xs">
+                                Please install one of these wallets:
+                            </p>
+                            <a
+                                href="https://www.argent.xyz/argent-x/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline text-sm"
+                            >
+                                Install Argent X
+                            </a>
+                            <a
+                                href="https://braavos.app/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline text-sm"
+                            >
+                                Install Braavos
+                            </a>
+                        </div>
+                    </>
+                )}
             </div>
         );
     }

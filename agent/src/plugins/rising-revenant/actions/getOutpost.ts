@@ -68,6 +68,7 @@ Reinforcement Slots Remaining: ${outpost.reinforcementSlotsRemaining}
 Reinforcement Type: "${outpost.reinforcementType === "None" ? "Unprotected" : outpost.reinforcementType}"`
     )
     .join("\n")}
+
 You also have ${reinforcementsAvailableCount} reinforcements available. \n
 "
 2. If ${outpostInformations.filter((o) => o.reinforcementSlotsRemaining > 0).length} > 0 AND ${reinforcementsAvailableCount} <= 0 THEN suggest the user to purchase reinforcements
@@ -165,11 +166,7 @@ export default {
             elizaLogger.info(
                 `Start getting outpost for ${walletAddress} in game ${gameId}`
             );
-            // const outposts = await getPlayerOutposts(walletAddress, gameId);
-            const outposts = await getPlayerOutposts(
-                walletAddress,
-                "0xf7e97c5ce80448748e0ce3e669f21ae8"
-            );
+            const outposts = await getPlayerOutposts(walletAddress, gameId);
             elizaLogger.success("Successfully fetched outpost data:", outposts);
             const playerInfo = await getPlayerInfo(walletAddress, gameId);
             elizaLogger.success(

@@ -57,23 +57,18 @@ If ${outpostInformations.length} is 0:
 
 If ${outpostInformations.length} > 0
 1. Return exactly this: "
-The transaction was successful, now you have ${outpostInformations.length} outposts: \n
-${
-    outpostInformations
-        .map(
-            (outpost, idx) => `
-    #${idx + 1} \n
-    ID: ${outpost.id} \n
-    Location: [${outpost.position.x}, ${outpost.position.y}] \n
-    Life: ${outpost.life} \n
-    Reinforcement Slots Remaining: ${outpost.reinforcementSlotsRemaining} \n
-    Reinforcement Type: "${outpost.reinforcementType === "None" ? "Unprotected" : outpost.reinforcementType}"
-    `
-        )
-        .join("\n") + "\n"
-}
-
-\n You also have ${reinforcementsAvailableCount} reinforcements available. \n
+You have ${outpostInformations.length} outposts:
+${outpostInformations
+    .map(
+        (outpost, idx) => `
+#${idx + 1}
+Location: [${outpost.position.x}, ${outpost.position.y}]
+Life: ${outpost.life}
+Reinforcement Slots Remaining: ${outpost.reinforcementSlotsRemaining}
+Reinforcement Type: "${outpost.reinforcementType === "None" ? "Unprotected" : outpost.reinforcementType}"`
+    )
+    .join("\n")}
+You also have ${reinforcementsAvailableCount} reinforcements available. \n
 "
 2. If ${outpostInformations.filter((o) => o.reinforcementSlotsRemaining > 0).length} > 0 AND ${reinforcementsAvailableCount} <= 0 THEN suggest the user to purchase reinforcements
 3. If ${outpostInformations.filter((o) => o.reinforcementSlotsRemaining > 0).length} > 0 AND ${reinforcementsAvailableCount} > 0 THEN suggest the user to reinforce the outposts (mention the outpost #)
