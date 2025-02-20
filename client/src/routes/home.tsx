@@ -270,7 +270,7 @@ export default function Home() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen h-[100dvh] max-w-[100vw] overflow-x-hidden">
+        <div className="flex flex-col h-[100dvh]">
             <div className="flex justify-between items-center p-2 sm:p-4 shrink-0">
                 <PageTitle title="Luna" />
                 {activeConnector && (
@@ -288,8 +288,8 @@ export default function Home() {
                 </div>
             )}
             {status === "connected" && agent && (
-                <div className="flex flex-col flex-1 min-h-0 w-full overflow-x-hidden">
-                    <div className="flex flex-col items-center shrink-0">
+                <div className="flex flex-col flex-1">
+                    <div className="flex flex-col items-center p-4 gap-4 shrink-0">
                         <div className="relative w-24 h-24">
                             <img
                                 src="/luna_closed.png"
@@ -308,7 +308,7 @@ export default function Home() {
                         </div>
                         {showQuickActions && <QuickActions />}
                     </div>
-                    <div className="flex-1 min-h-0 w-full max-w-4xl mx-auto">
+                    <div className="relative flex-1">
                         <Chat
                             agentId={agent.id}
                             onSendMessage={handleSendMessage}

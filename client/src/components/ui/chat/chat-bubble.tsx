@@ -6,7 +6,7 @@ import { Button, ButtonProps } from "../button";
 import MessageLoading from "./message-loading";
 
 // ChatBubble
-const chatBubbleVariant = cva("flex gap-2 items-end relative group", {
+const chatBubbleVariant = cva("flex items-end relative group", {
     variants: {
         variant: {
             received: "self-start",

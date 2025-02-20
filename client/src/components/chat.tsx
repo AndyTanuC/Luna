@@ -259,7 +259,7 @@ export default function Page({ agentId, onSendMessage }: PageProps) {
     const AnimatedDiv = animated("div");
 
     return (
-        <div className="flex flex-col w-full h-full max-w-full overflow-x-hidden">
+        <div className="absolute inset-0 flex flex-col">
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <ChatMessageList ref={messagesContainerRef}>
                     {transitions((styles, message) => (
@@ -287,7 +287,7 @@ export default function Page({ agentId, onSendMessage }: PageProps) {
                                     />
                                 </Avatar>
 
-                                <div className="flex flex-col w-full overflow-hidden rounded-2xl py-2">
+                                <div className="flex flex-col w-full overflow-hidden rounded-2xl">
                                     <ChatBubbleMessage
                                         isLoading={message?.isLoading}
                                         className="text-base text-white/90 bg-transparent break-words chat-message"
@@ -322,7 +322,7 @@ export default function Page({ agentId, onSendMessage }: PageProps) {
                     ))}
                 </ChatMessageList>
             </div>
-            <div className="p-2 sm:p-4">
+            <div className="relative p-2 sm:p-4 bg-background">
                 <form
                     ref={formRef}
                     onSubmit={handleSendMessage}
