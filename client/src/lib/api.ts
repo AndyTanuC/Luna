@@ -1,8 +1,6 @@
 import { type Character, type UUID } from "@elizaos/core";
 
-// const BASE_URL = "http://localhost:3111";
-const BASE_URL =
-    "https://95da-2404-8000-1004-5dfe-a08e-6da1-39c2-1d82.ngrok-free.app";
+const BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "";
 
 const fetcher = async ({
     url,
