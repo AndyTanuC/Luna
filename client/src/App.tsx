@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import useVersion from "./hooks/use-version";
+// import useVersion from "./hooks/use-version";
 import "./index.css";
 import { StarknetProvider } from "./lib/starknet";
 import Chat from "./routes/chat";
@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-    useVersion();
+    // useVersion();
     return (
         <StarknetProvider>
             <QueryClientProvider client={queryClient}>

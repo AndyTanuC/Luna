@@ -65,7 +65,7 @@ export default function useVersion() {
     };
 
     useEffect(() => {
-        // compareVersion();
+        compareVersion();
     }, []);
 
     return null;
