@@ -183,33 +183,35 @@ function QuickActions() {
     }, []);
 
     return (
-        <div className="flex flex-col w-full max-w-[300px] gap-3">
+        <div className="flex flex-col items-center w-full gap-3">
             <p
                 className={`text-white text-sm mb-2 ${showTitle ? "animate-slide-down" : "opacity-0"}`}
             >
                 Quick Actions:
             </p>
-            <button
-                className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
-                    showAction1 ? "animate-slide-down" : "opacity-0"
-                }`}
-            >
-                My Outposts
-            </button>
-            <button
-                className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
-                    showAction2 ? "animate-slide-down" : "opacity-0"
-                }`}
-            >
-                Game Stats
-            </button>
-            <button
-                className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
-                    showAction3 ? "animate-slide-down" : "opacity-0"
-                }`}
-            >
-                Active Trades
-            </button>
+            <div className="flex flex-col w-full max-w-[300px] gap-3">
+                <button
+                    className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
+                        showAction1 ? "animate-slide-down" : "opacity-0"
+                    }`}
+                >
+                    My Outposts
+                </button>
+                <button
+                    className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
+                        showAction2 ? "animate-slide-down" : "opacity-0"
+                    }`}
+                >
+                    Game Stats
+                </button>
+                <button
+                    className={`w-full h-[50px] bg-[url('/button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity ${
+                        showAction3 ? "animate-slide-down" : "opacity-0"
+                    }`}
+                >
+                    Active Trades
+                </button>
+            </div>
         </div>
     );
 }
@@ -268,7 +270,7 @@ export default function Home() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen h-[100dvh]">
+        <div className="flex flex-col min-h-screen h-[100dvh] max-w-[100vw] overflow-x-hidden">
             <div className="flex justify-between items-center p-2 sm:p-4 shrink-0">
                 <PageTitle title="Luna" />
                 {activeConnector && (
@@ -286,8 +288,8 @@ export default function Home() {
                 </div>
             )}
             {status === "connected" && agent && (
-                <div className="flex flex-col flex-1 min-h-0">
-                    <div className="flex flex-col items-center gap-6 p-4 shrink-0">
+                <div className="flex flex-col flex-1 min-h-0 w-full overflow-x-hidden">
+                    <div className="flex flex-col items-center shrink-0">
                         <div className="relative w-24 h-24">
                             <img
                                 src="/luna_closed.png"
@@ -306,7 +308,7 @@ export default function Home() {
                         </div>
                         {showQuickActions && <QuickActions />}
                     </div>
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 w-full max-w-4xl mx-auto">
                         <Chat
                             agentId={agent.id}
                             onSendMessage={handleSendMessage}

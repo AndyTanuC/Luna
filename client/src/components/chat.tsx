@@ -259,114 +259,67 @@ export default function Page({ agentId, onSendMessage }: PageProps) {
     const AnimatedDiv = animated("div");
 
     return (
-        <div className="flex flex-col w-full h-full">
-            <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col w-full h-full max-w-full overflow-x-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <ChatMessageList ref={messagesContainerRef}>
-                    {transitions((styles, message) => {
-                        const isUser = message?.user === "user";
-                        return (
-                            <AnimatedDiv
-                                style={styles}
-                                className="flex flex-col"
+                    {transitions((styles, message) => (
+                        <AnimatedDiv
+                            style={styles}
+                            className="flex flex-col w-full"
+                        >
+                            <ChatBubble
+                                variant="received"
+                                className="flex items-center gap-2 w-full"
                             >
-                                <ChatBubble
-                                    variant="received"
-                                    className="flex items-center gap-2 max-w-[95%] ml-0 -mb-10"
-                                >
-                                    <Avatar className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white/10 mt-1">
-                                        <AvatarImage
-                                            src={
-                                                isUser
-                                                    ? "/revenant.png"
-                                                    : "/luna_open.png"
-                                            }
-                                            alt={isUser ? "Revenant" : "Luna"}
-                                            className="object-cover"
-                                        />
-                                    </Avatar>
+                                <Avatar className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white/10 mt-1">
+                                    <AvatarImage
+                                        src={
+                                            message?.user === "user"
+                                                ? "/revenant.png"
+                                                : "/luna_open.png"
+                                        }
+                                        alt={
+                                            message?.user === "user"
+                                                ? "Revenant"
+                                                : "Luna"
+                                        }
+                                        className="object-cover"
+                                    />
+                                </Avatar>
 
-                                    <div className="flex flex-col overflow-hidden rounded-2xl py-2">
-                                        <ChatBubbleMessage
-                                            isLoading={message?.isLoading}
-                                            className="text-base text-white/90 bg-transparent"
-                                        >
-                                            {message?.user !== "user" ? (
-                                                <AIWriter>
-                                                    {message?.text}
-                                                </AIWriter>
-                                            ) : (
-                                                message?.text
+                                <div className="flex flex-col w-full overflow-hidden rounded-2xl py-2">
+                                    <ChatBubbleMessage
+                                        isLoading={message?.isLoading}
+                                        className="text-base text-white/90 bg-transparent break-words chat-message"
+                                    >
+                                        {message?.user !== "user" ? (
+                                            <AIWriter>{message?.text}</AIWriter>
+                                        ) : (
+                                            message?.text
+                                        )}
+                                        {/* Attachments */}
+                                        <div>
+                                            {message?.attachments?.map(
+                                                (attachment, idx) => (
+                                                    <div
+                                                        className="flex flex-col gap-1 mt-2"
+                                                        key={idx}
+                                                    >
+                                                        <img
+                                                            src={attachment.url}
+                                                            width="100%"
+                                                            height="100%"
+                                                            className="max-w-[256px] rounded-md"
+                                                        />
+                                                    </div>
+                                                )
                                             )}
-                                            {/* Attachments */}
-                                            <div>
-                                                {message?.attachments?.map(
-                                                    (attachment, idx) => (
-                                                        <div
-                                                            className="flex flex-col gap-1 mt-2"
-                                                            key={idx}
-                                                        >
-                                                            <img
-                                                                src={
-                                                                    attachment.url
-                                                                }
-                                                                width="100%"
-                                                                height="100%"
-                                                                className="w-64 rounded-md"
-                                                            />
-                                                            <div className="flex items-center justify-between gap-4">
-                                                                <span></span>
-                                                                <span></span>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                )}
-                                            </div>
-                                        </ChatBubbleMessage>
-                                        {/* <div className="flex items-center gap-2 justify-between w-full mt-1">
-                                            {message?.text &&
-                                            !message?.isLoading ? (
-                                                <div className="flex items-center gap-1">
-                                                    <CopyButton
-                                                        text={message?.text}
-                                                    />
-                                                    <ChatTtsButton
-                                                        agentId={agentId}
-                                                        text={message?.text}
-                                                    />
-                                                </div>
-                                            ) : null}
-                                            <div
-                                                className={cn([
-                                                    message?.isLoading
-                                                        ? "mt-2"
-                                                        : "",
-                                                    "flex items-center justify-between gap-2 select-none text-xs",
-                                                ])}
-                                            >
-                                                {message?.source ? (
-                                                    <Badge variant="outline">
-                                                        {message.source}
-                                                    </Badge>
-                                                ) : null}
-                                                {message?.action ? (
-                                                    <Badge variant="outline">
-                                                        {message.action}
-                                                    </Badge>
-                                                ) : null}
-                                                {message?.createdAt ? (
-                                                    <ChatBubbleTimestamp
-                                                        timestamp={moment(
-                                                            message?.createdAt
-                                                        ).format("LT")}
-                                                    />
-                                                ) : null}
-                                            </div>
-                                        </div> */}
-                                    </div>
-                                </ChatBubble>
-                            </AnimatedDiv>
-                        );
-                    })}
+                                        </div>
+                                    </ChatBubbleMessage>
+                                </div>
+                            </ChatBubble>
+                        </AnimatedDiv>
+                    ))}
                 </ChatMessageList>
             </div>
             <div className="p-2 sm:p-4">

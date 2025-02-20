@@ -88,4 +88,15 @@
         position: relative;
         z-index: 1;
     }
+
+    .chat-message {
+        white-space: pre-line;
+        line-height: 1.5rem;
+    }
+
+    .chat-message br {
+        margin-top: -0.5rem;
+        display: block;
+        content: "";
+    }
 }
