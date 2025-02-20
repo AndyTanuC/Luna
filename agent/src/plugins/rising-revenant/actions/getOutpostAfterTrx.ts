@@ -68,6 +68,7 @@ Reinforcement Slots Remaining: ${outpost.reinforcementSlotsRemaining}
 Reinforcement Type: "${outpost.reinforcementType === "None" ? "Unprotected" : outpost.reinforcementType}"`
     )
     .join("\n")}
+
 You also have ${reinforcementsAvailableCount} reinforcements available. \n
 "
 2. If ${outpostInformations.filter((o) => o.reinforcementSlotsRemaining > 0).length} > 0 AND ${reinforcementsAvailableCount} <= 0 THEN suggest the user to purchase reinforcements
