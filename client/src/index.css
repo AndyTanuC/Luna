@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inria+Serif:wght@300;400;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -72,5 +74,18 @@
 
     body {
         @apply bg-background text-foreground;
+        position: relative;
+        background-image: url("/luna_bg.jpeg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        font-family: "Inria Serif", serif;
+        font-weight: 400;
+    }
+
+    #root {
+        position: relative;
+        z-index: 1;
     }
 }

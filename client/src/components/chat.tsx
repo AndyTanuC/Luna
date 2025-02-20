@@ -2,13 +2,11 @@ import { Button } from "@/components/ui/button";
 import {
     ChatBubble,
     ChatBubbleMessage,
-    ChatBubbleTimestamp,
 } from "@/components/ui/chat/chat-bubble";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
-import { cn, moment } from "@/lib/utils";
 import { IAttachment } from "@/types";
 import { Content, UUID } from "@elizaos/core";
 import { animated, useTransition } from "@react-spring/web";
@@ -17,10 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import AIWriter from "react-aiwriter";
-import CopyButton from "./copy-button";
 import { Avatar, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import ChatTtsButton from "./ui/chat/chat-tts-button";
 
 interface ExtraContentFields {
     user: string;
@@ -40,7 +35,12 @@ type ContentWithUser = Content & ExtraContentFields;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default function Page({ agentId }: { agentId: UUID }) {
+interface PageProps {
+    agentId: UUID;
+    onSendMessage?: (e: React.FormEvent<HTMLFormElement>) => void;
+}
+
+export default function Page({ agentId, onSendMessage }: PageProps) {
     const { toast } = useToast();
     const { address } = useAccount();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -67,8 +67,8 @@ export default function Page({ agentId }: { agentId: UUID }) {
         }
     }, [error]);
 
-    const getMessageVariant = (role: string) =>
-        role !== "user" ? "received" : "sent";
+    // const getMessageVariant = (role: string) =>
+    //     role !== "user" ? "received" : "sent";
 
     const scrollToBottom = () => {
         if (messagesContainerRef.current) {
@@ -132,6 +132,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
         setSelectedFile(null);
         setInput("");
         formRef.current?.reset();
+        onSendMessage?.(e);
     };
 
     const executeCall = async (calls: ContractCall[]) => {
@@ -262,25 +263,32 @@ export default function Page({ agentId }: { agentId: UUID }) {
             <div className="flex-1 overflow-y-auto">
                 <ChatMessageList ref={messagesContainerRef}>
                     {transitions((styles, message) => {
-                        const variant = getMessageVariant(message?.user);
+                        const isUser = message?.user === "user";
                         return (
                             <AnimatedDiv
                                 style={styles}
-                                className="flex flex-col gap-1.5 p-2 sm:p-4"
+                                className="flex flex-col"
                             >
                                 <ChatBubble
-                                    variant={variant}
-                                    className="flex flex-row items-start gap-2 max-w-[85vw] break-words"
+                                    variant="received"
+                                    className="flex items-center gap-2 max-w-[95%] ml-0 -mb-10"
                                 >
-                                    {message?.user !== "user" ? (
-                                        <Avatar className="size-6 sm:size-8 p-1 border rounded-full select-none shrink-0">
-                                            <AvatarImage src="/elizaos-icon.png" />
-                                        </Avatar>
-                                    ) : null}
-                                    <div className="flex flex-col overflow-hidden">
+                                    <Avatar className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white/10 mt-1">
+                                        <AvatarImage
+                                            src={
+                                                isUser
+                                                    ? "/revenant.png"
+                                                    : "/luna_open.png"
+                                            }
+                                            alt={isUser ? "Revenant" : "Luna"}
+                                            className="object-cover"
+                                        />
+                                    </Avatar>
+
+                                    <div className="flex flex-col overflow-hidden rounded-2xl py-2">
                                         <ChatBubbleMessage
                                             isLoading={message?.isLoading}
-                                            className="text-sm sm:text-base break-words"
+                                            className="text-base text-white/90 bg-transparent"
                                         >
                                             {message?.user !== "user" ? (
                                                 <AIWriter>
@@ -314,7 +322,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
                                                 )}
                                             </div>
                                         </ChatBubbleMessage>
-                                        <div className="flex items-center gap-2 justify-between w-full mt-1">
+                                        {/* <div className="flex items-center gap-2 justify-between w-full mt-1">
                                             {message?.text &&
                                             !message?.isLoading ? (
                                                 <div className="flex items-center gap-1">
@@ -353,7 +361,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
                                                     />
                                                 ) : null}
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </ChatBubble>
                             </AnimatedDiv>
@@ -365,11 +373,30 @@ export default function Page({ agentId }: { agentId: UUID }) {
                 <form
                     ref={formRef}
                     onSubmit={handleSendMessage}
-                    className="relative rounded-md border bg-card"
+                    className="relative"
                 >
+                    <div className="relative flex items-center border border-white/10 rounded-lg bg-black/50 backdrop-blur">
+                        <ChatInput
+                            ref={inputRef}
+                            onKeyDown={handleKeyDown}
+                            value={input}
+                            onChange={({ target }) => setInput(target.value)}
+                            placeholder="Message Luna..."
+                            className="min-h-[44px] w-full text-base text-white/90 resize-none rounded-lg bg-transparent border-0 p-3 pr-12 shadow-none focus-visible:ring-0"
+                            style={{ fontSize: "16px" }}
+                        />
+                        <Button
+                            disabled={!input || sendMessageMutation?.isPending}
+                            type="submit"
+                            size="icon"
+                            className="absolute right-2 bg-transparent hover:bg-white/10 text-white/90"
+                        >
+                            <Send className="size-5" />
+                        </Button>
+                    </div>
                     {selectedFile ? (
-                        <div className="p-3 flex">
-                            <div className="relative rounded-md border p-2">
+                        <div className="absolute -top-20 left-0 p-3">
+                            <div className="relative rounded-md border border-white/10 p-2 bg-black/50">
                                 <Button
                                     onClick={() => setSelectedFile(null)}
                                     className="absolute -right-2 -top-2 size-[22px] ring-2 ring-background"
@@ -387,28 +414,6 @@ export default function Page({ agentId }: { agentId: UUID }) {
                             </div>
                         </div>
                     ) : null}
-                    <ChatInput
-                        ref={inputRef}
-                        onKeyDown={handleKeyDown}
-                        value={input}
-                        onChange={({ target }) => setInput(target.value)}
-                        placeholder="Ask your questions explorer..."
-                        className="min-h-10 text-base sm:text-base resize-none rounded-md bg-card border-0 p-2 sm:p-3 shadow-none focus-visible:ring-0"
-                        style={{ fontSize: "16px" }} // This prevents iOS zoom
-                    />
-                    <div className="flex items-center p-2 sm:p-3 pt-0">
-                        <Button
-                            disabled={!input || sendMessageMutation?.isPending}
-                            type="submit"
-                            size="sm"
-                            className="bg-red-500 w-full ml-auto gap-1.5 h-[30px] text-xs sm:text-sm"
-                        >
-                            {sendMessageMutation?.isPending
-                                ? "..."
-                                : "Send Message"}
-                            <Send className="size-3 sm:size-3.5" />
-                        </Button>
-                    </div>
                 </form>
             </div>
         </div>
