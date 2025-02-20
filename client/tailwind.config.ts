@@ -101,7 +101,7 @@ export default {
                 },
             },
             animation: {
-                blink: "blink 5s ease-in-out infinite",
+                blink: "blink 4s ease-out infinite",
                 "slide-down": "slideDown 0.5s ease-out forwards",
                 typewriter:
                     "typewriter 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards",

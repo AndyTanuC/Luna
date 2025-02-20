@@ -10,6 +10,7 @@ import {
     useInjectedConnectors,
 } from "@starknet-react/core";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 // const RPC_URL = "https://api.cartridge.gg/x/starknet/sepolia";
@@ -44,26 +45,6 @@ function WalletManager() {
     //     chains: [{ rpcUrl: RPC_URL }],
     // }) as never as Connector;
 
-    const animateText = (text: string, show: boolean) => {
-        return (
-            <div className="flex h-[1.5em]">
-                {text.split("").map((char, index) => (
-                    <span
-                        key={index}
-                        className={`${
-                            show ? "animate-typewriter" : "w-0"
-                        } overflow-hidden opacity-0`}
-                        style={{
-                            animationDelay: show ? `${index * 100}ms` : "0ms",
-                        }}
-                    >
-                        {char}
-                    </span>
-                ))}
-            </div>
-        );
-    };
-
     if (connectors.length === 0) {
         return (
             <div className="flex flex-col items-center gap-4 w-full max-w-[240px] text-center">
@@ -97,28 +78,66 @@ function WalletManager() {
     return (
         <div className="flex flex-col items-center gap-6 w-full max-w-[240px]">
             <div className="relative w-64 h-64">
-                <img
-                    src="/luna_closed.png"
-                    alt="Luna"
-                    className={`absolute w-full h-full transition-opacity duration-200 ${
-                        showOpenEyes ? "opacity-0" : "opacity-100"
-                    }`}
-                />
-                <img
-                    src="/luna_open.png"
-                    alt="Luna"
-                    className={`absolute w-full h-full transition-opacity duration-200 ${
-                        showOpenEyes ? "opacity-100" : "opacity-0"
-                    }`}
-                />
+                <AnimatePresence>
+                    {!showOpenEyes && (
+                        <motion.img
+                            src="/luna_closed.png"
+                            alt="Luna"
+                            className="absolute w-full h-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1 }}
+                        />
+                    )}
+                    {showOpenEyes && (
+                        <motion.img
+                            src="/luna_open.png"
+                            alt="Luna"
+                            className="absolute w-full h-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1 }}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
             <div className="flex flex-col items-center gap-2">
-                <div className="text-white text-lg">
-                    {animateText("Hello,\u00A0Revenant.", showGreeting1)}
-                </div>
-                <div className="text-white text-lg">
-                    {animateText("I\u00A0am\u00A0Luna.", showGreeting2)}
-                </div>
+                <motion.div
+                    className="text-white text-lg"
+                    initial={{ opacity: 0 }}
+                    animate={showGreeting1 ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <motion.span
+                        initial={{ width: 0 }}
+                        animate={
+                            showGreeting1 ? { width: "auto" } : { width: 0 }
+                        }
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="inline-block whitespace-nowrap overflow-hidden"
+                    >
+                        Hello, Revenant.
+                    </motion.span>
+                </motion.div>
+                <motion.div
+                    className="text-white text-lg"
+                    initial={{ opacity: 0 }}
+                    animate={showGreeting2 ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <motion.span
+                        initial={{ width: 0 }}
+                        animate={
+                            showGreeting2 ? { width: "auto" } : { width: 0 }
+                        }
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="inline-block whitespace-nowrap overflow-hidden"
+                    >
+                        I am Luna.
+                    </motion.span>
+                </motion.div>
             </div>
 
             {showButtons && (
@@ -291,20 +310,30 @@ export default function Home() {
                 <div className="flex flex-col flex-1">
                     <div className="flex flex-col items-center p-4 gap-4 shrink-0">
                         <div className="relative w-24 h-24">
-                            <img
-                                src="/luna_closed.png"
-                                alt="Luna"
-                                className={`absolute w-full h-full transition-opacity duration-200 ${
-                                    isBlinking ? "opacity-100" : "opacity-0"
-                                }`}
-                            />
-                            <img
-                                src="/luna_open.png"
-                                alt="Luna"
-                                className={`absolute w-full h-full transition-opacity duration-200 ${
-                                    isBlinking ? "opacity-0" : "opacity-100"
-                                }`}
-                            />
+                            <AnimatePresence>
+                                {isBlinking && (
+                                    <motion.img
+                                        src="/luna_closed.png"
+                                        alt="Luna"
+                                        className="absolute w-full h-full"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    />
+                                )}
+                                {!isBlinking && (
+                                    <motion.img
+                                        src="/luna_open.png"
+                                        alt="Luna"
+                                        className="absolute w-full h-full"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    />
+                                )}
+                            </AnimatePresence>
                         </div>
                         {showQuickActions && <QuickActions />}
                     </div>
