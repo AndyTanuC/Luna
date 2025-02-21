@@ -1,5 +1,4 @@
 import Chat from "@/components/chat";
-import PageTitle from "@/components/page-title";
 import { apiClient } from "@/lib/api";
 // import { ControllerConnector } from "@cartridge/connector";
 import {
@@ -171,13 +170,9 @@ function WalletManager() {
                                 <button
                                     key={connector.id}
                                     onClick={() => connect({ connector })}
-                                    className="bg-black rounded-md p-3 w-full h-[50px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                                    className="w-full h-[50px] bg-[url('/login-button-frame.png')] bg-center bg-contain bg-no-repeat flex items-center justify-center text-white hover:opacity-90 transition-opacity"
                                 >
-                                    <img
-                                        src="/wallet-braavos.png"
-                                        alt="Braavos"
-                                        className="h-full w-auto"
-                                    />
+                                    Login Now
                                 </button>
                             );
                         }
@@ -297,14 +292,13 @@ export default function Home() {
 
     return (
         <div className="flex flex-col h-[100dvh]">
-            <div className="flex justify-between items-center p-2 sm:p-4 shrink-0">
-                <PageTitle title="Luna" />
+            <div className="flex justify-end items-start p-2 sm:p-4 shrink-0">
                 {activeConnector && (
                     <button
                         onClick={() => disconnect()}
                         className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        Disconnect
+                        Log out
                     </button>
                 )}
             </div>
@@ -315,35 +309,37 @@ export default function Home() {
             )}
             {status === "connected" && agent && (
                 <div className="flex flex-col flex-1">
-                    <div className="flex flex-col items-center p-4 gap-4 shrink-0">
-                        <div className="relative w-24 h-24">
-                            <AnimatePresence>
-                                {isBlinking && (
-                                    <motion.img
-                                        src="/luna_closed.png"
-                                        alt="Luna"
-                                        className="absolute w-full h-full"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    />
-                                )}
-                                {!isBlinking && (
-                                    <motion.img
-                                        src="/luna_open.png"
-                                        alt="Luna"
-                                        className="absolute w-full h-full"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    />
-                                )}
-                            </AnimatePresence>
-                        </div>
-                        {showQuickActions && <QuickActions />}
+                    <div className="relative w-24 h-24 mx-auto">
+                        <AnimatePresence>
+                            {isBlinking && (
+                                <motion.img
+                                    src="/luna_closed.png"
+                                    alt="Luna"
+                                    className="absolute w-full h-full"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                />
+                            )}
+                            {!isBlinking && (
+                                <motion.img
+                                    src="/luna_open.png"
+                                    alt="Luna"
+                                    className="absolute w-full h-full"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                />
+                            )}
+                        </AnimatePresence>
                     </div>
+                    {showQuickActions && (
+                        <div className="flex flex-col items-center p-4 gap-4 shrink-0">
+                            <QuickActions />
+                        </div>
+                    )}
                     <div className="relative flex-1">
                         <Chat
                             agentId={agent.id}
