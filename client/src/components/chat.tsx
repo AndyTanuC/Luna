@@ -265,13 +265,13 @@ export default function Page({ agentId, onSendMessage }: PageProps) {
                     {transitions((styles, message) => (
                         <AnimatedDiv
                             style={styles}
-                            className="flex flex-col w-full"
+                            className="flex flex-col w-full mb-8"
                         >
                             <ChatBubble
                                 variant="received"
-                                className="flex items-center gap-2 w-full"
+                                className="flex items-start gap-2 w-full"
                             >
-                                <Avatar className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white/10 mt-1">
+                                <Avatar className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white/10 mt-2">
                                     <AvatarImage
                                         src={
                                             message?.user === "user"

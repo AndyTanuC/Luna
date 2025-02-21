@@ -292,24 +292,17 @@ export default function Home() {
 
     return (
         <div className="flex flex-col h-[100dvh]">
-            <div className="flex justify-end items-start p-2 sm:p-4 shrink-0">
+            <div className="relative flex flex-col items-center p-2 sm:p-4 shrink-0">
                 {activeConnector && (
                     <button
                         onClick={() => disconnect()}
-                        className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="absolute top-2 right-4 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                         Log out
                     </button>
                 )}
-            </div>
-            {status !== "connected" && (
-                <div className="flex-1 flex items-center justify-center p-4">
-                    <WalletManager />
-                </div>
-            )}
-            {status === "connected" && agent && (
-                <div className="flex flex-col flex-1">
-                    <div className="relative w-24 h-24 mx-auto">
+                {status === "connected" && (
+                    <div className="relative w-24 h-24">
                         <AnimatePresence>
                             {isBlinking && (
                                 <motion.img
@@ -335,6 +328,15 @@ export default function Home() {
                             )}
                         </AnimatePresence>
                     </div>
+                )}
+            </div>
+            {status !== "connected" && (
+                <div className="flex-1 flex items-center justify-center p-4">
+                    <WalletManager />
+                </div>
+            )}
+            {status === "connected" && agent && (
+                <div className="flex flex-col flex-1">
                     {showQuickActions && (
                         <div className="flex flex-col items-center p-4 gap-4 shrink-0">
                             <QuickActions />
